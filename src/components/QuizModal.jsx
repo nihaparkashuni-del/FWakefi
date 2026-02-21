@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     Brain,
@@ -14,28 +14,25 @@ import {
     TrendingUp,
     TrendingDown,
     Coins,
+    Clock,
 } from "lucide-react";
 
 /**
  * Wakefi Quiz Modal — Premium Hackathon Build
  * – Article truncated to ~7 lines with "Read full article" link
- * – Question + options shown immediately below
+ * – No in-app timer — the Hedera burn schedule (alarm + 15min) is the real deadline
  * – P&L summary on result (earned / lost / total left)
  * – Streak 7-day reward celebration
  * – Back to Dashboard escape hatch
  * – Scrollable full-page layout
  */
-const TIMER_SECONDS = 30;
-
 const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, totalRescued = 0, totalStaked = 0, streak = 0 }) => {
     const [article, setArticle] = useState(null);
     const [quiz, setQuiz] = useState(null);
     const [loading, setLoading] = useState(true);
     const [selected, setSelected] = useState(null);
     const [result, setResult] = useState(null); // "correct" | "wrong"
-    const [timeLeft, setTimeLeft] = useState(TIMER_SECONDS);
     const [showStreakReward, setShowStreakReward] = useState(false);
-    const timerRef = useRef(null);
 
     // P&L derived values
     const earned = result === "correct" ? stakeAmount : 0;
@@ -49,20 +46,17 @@ const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, t
             try {
                 const res = await fetch("https://min-api.cryptocompare.com/data/v2/news/?lang=EN");
                 const json = await res.json();
-                // Rotate through top 10 articles
                 const idx = Math.floor(Math.random() * 10);
                 const news = json.Data[idx];
                 const url = news.url || news.guid || "#";
 
                 setArticle({
                     title: news.title,
-                    // ~7 lines ≈ 420 chars at normal width
                     snippet: news.body.slice(0, 420),
                     source: news.source_info?.name || "CryptoCompare",
                     url,
                 });
 
-                // Build a meaningful question from title keywords
                 const titles = json.Data.slice(0, 10).map(a => a.source_info?.name || "Unknown");
                 const correct = news.source_info?.name || titles[0];
                 const distractors = [...new Set(titles.filter(t => t !== correct))].slice(0, 3);
@@ -76,21 +70,8 @@ const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, t
                     options,
                     correctIndex,
                 });
-
-                timerRef.current = setInterval(() => {
-                    setTimeLeft(prev => {
-                        if (prev <= 1) {
-                            clearInterval(timerRef.current);
-                            setResult("wrong");
-                            setTimeout(onFail, 2500);
-                            return 0;
-                        }
-                        return prev - 1;
-                    });
-                }, 1000);
             } catch (e) {
                 console.error("Quiz fetch failed", e);
-                // Fallback static quiz
                 setArticle({ title: "Protocol Integrity Verification", snippet: "Welcome to Wakefi's proof-of-knowledge system. Answer the question to rescue your committed stake.", source: "Wakefi Protocol", url: "#" });
                 setQuiz({ question: "What does 'DeFi' stand for?", options: ["Decentralized Finance", "Digital Finance", "Distributed Funding", "Dynamic Fees"], correctIndex: 0 });
             } finally {
@@ -98,17 +79,14 @@ const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, t
             }
         };
         fetchQuiz();
-        return () => clearInterval(timerRef.current);
-    }, [onFail]);
+    }, []);
 
     const handleSubmit = () => {
         if (selected === null || result !== null) return;
-        clearInterval(timerRef.current);
         const isCorrect = selected === quiz.correctIndex;
         setResult(isCorrect ? "correct" : "wrong");
 
         if (isCorrect) {
-            // Check 7-day streak reward
             const newStreak = streak + 1;
             if (newStreak % 7 === 0) setShowStreakReward(true);
             setTimeout(onSuccess, showStreakReward ? 4000 : 2000);
@@ -116,9 +94,6 @@ const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, t
             setTimeout(onFail, 2500);
         }
     };
-
-    const timerPct = (timeLeft / TIMER_SECONDS) * 100;
-    const timerColor = timeLeft > 15 ? "#7F84F6" : timeLeft > 7 ? "#f59e0b" : "#f43f5e";
 
     return (
         <div className="fixed inset-0 z-[100] bg-dark/98 backdrop-blur-2xl overflow-y-auto">
@@ -139,21 +114,10 @@ const QuizModal = ({ onSuccess, onFail, onBack, isProcessing, stakeAmount = 0, t
                         <LayoutDashboard size={14} />
                         Dashboard
                     </button>
-                    {/* Timer ring */}
-                    <div className="flex items-center gap-3">
-                        <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-                            <circle cx="24" cy="24" r="20" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
-                            <circle
-                                cx="24" cy="24" r="20" fill="none"
-                                stroke={timerColor}
-                                strokeWidth="4"
-                                strokeDasharray={`${2 * Math.PI * 20}`}
-                                strokeDashoffset={`${2 * Math.PI * 20 * (1 - timerPct / 100)}`}
-                                strokeLinecap="round"
-                                style={{ transition: "stroke-dashoffset 1s linear, stroke 0.5s" }}
-                            />
-                        </svg>
-                        <span className="text-2xl font-black tabular-nums" style={{ color: timerColor }}>{timeLeft}s</span>
+                    {/* Grace period reminder — real deadline is Hedera schedule */}
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                        <Clock size={12} className="text-accent" />
+                        <span className="text-[10px] font-black text-muted uppercase tracking-widest">15 min grace period</span>
                     </div>
                 </div>
 
