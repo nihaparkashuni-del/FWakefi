@@ -10,20 +10,24 @@ import { getStreak, incrementStreak, resetStreak } from "./src/supabaseClient";
 
 // ── Splash Component ────────────────────────────────────────────────────────
 const SplashPortal = ({ onComplete }) => {
-    const [isMorphed, setIsMorphed] = useState(false);
+    const [leaving, setLeaving] = useState(false);
 
     const handleStart = () => {
-        setIsMorphed(true);
-        setTimeout(onComplete, 1200);
+        if (leaving) return;
+        setLeaving(true);
+        setTimeout(onComplete, 600);
     };
 
     return (
-        <div
+        <motion.div
             className="fixed inset-0 z-[1000] bg-dark flex items-center justify-center cursor-pointer overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: leaving ? 0 : 1 }}
+            transition={{ duration: leaving ? 0.6 : 0.8, ease: "easeInOut" }}
             onClick={handleStart}
         >
-            <div className={`relative transition-all duration-800 ${isMorphed ? 'animate-morph' : ''}`}>
-                <div className="absolute inset-0 bg-accent/20 rounded-full blur-[100px] animate-pulse-slow"></div>
+            <div className="relative flex flex-col items-center">
+                <div className="absolute inset-0 bg-accent/20 rounded-full blur-[100px] animate-pulse-slow" />
                 <div className="relative z-10 flex flex-col items-center">
                     <motion.div
                         animate={{ y: [0, -10, 0] }}
@@ -42,7 +46,7 @@ const SplashPortal = ({ onComplete }) => {
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 
