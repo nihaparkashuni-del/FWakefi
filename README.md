@@ -4,152 +4,238 @@
 > Miss your wake-up? Your HBAR burns on-chain — automatically — even if your phone is off.
 
 🔗 **Live Demo:** [f-wakefi-atfh.vercel.app](https://f-wakefi-atfh.vercel.app)  
+📁 **Repo:** [github.com/nihaparkashuni-del/FWakefi](https://github.com/nihaparkashuni-del/FWakefi)  
 🏗 **Built at:** ETHDenver 2026 · Hedera Innovation Track
 
 ---
 
-## 🧠 The Problem
+## 📋 Table of Contents
 
-Alarm snoozing is a trillion-dollar productivity failure. Every self-help app offers streaks, badges, and motivational quotes. None of them put anything real on the line.
-
-**WakeFi changes the game with skin in the game.**
-
----
-
-## ⚡ How It Works
-
-```
-User sets alarm + stakes HBAR
-         │
-         ▼
-  ScheduleCreateTransaction
-  (setWaitForExpiry = true)
-         │
-    ┌────┴────┐
-    │         │
-User wakes   User sleeps
-   up           in
-    │             │
-   Quiz        ⏳ 15-min
-  passed?      grace period
-    │         expires
-    │             │
-    ▼             ▼
-ScheduleDelete  Hedera consensus
-(funds safe)   auto-executes burn
-```
-
-1. **Arm the Alarm** — User stakes 0.5–10 HBAR. A `ScheduleCreateTransaction` is created on Hedera with `setWaitForExpiry(true)`, set to execute at `alarmTime + 15 minutes`.
-
-2. **The Alarm Rings** — At wake-up time, the app plays an alarm sound and launches the **Intelligence Verification Quiz** — a real crypto news question fetched live from the CryptoCompare API.
-
-3. **Answer to Disarm** — Correct answer triggers `ScheduleDeleteTransaction`, cancelling the burn. Funds are safe.
-
-4. **Fail or Disappear** — Hedera Consensus Service automatically executes the scheduled transfer to the burn address at `alarmTime + 15min`. No server needed. No cron job. No escape.
+- [POC — Proof of Concept](#-poc--proof-of-concept)
+- [PRD — Product Requirements](#-prd--product-requirements-document)
+- [TRD — Technical Requirements](#-trd--technical-requirements-document)
+- [Bounty Targets](#-bounty-targets)
+- [Local Development](#-local-development)
 
 ---
 
-## 🔒 Why This Is Trustless
+## 🧪 POC — Proof of Concept
 
-WakeFi has **no traditional backend**, no cron jobs, no off-chain executors, and no smart contracts.
+### What We Built
 
-The entire enforcement mechanism lives natively on the **Hedera ledger**:
+WakeFi is a fully functional, deployed proof-of-concept demonstrating that **behavioral accountability can be enforced trustlessly on a public ledger** — without smart contracts, without a backend server, and without any trusted third party.
 
-- `ScheduleCreateTransaction` + `setWaitForExpiry(true)` = Hedera consensus triggers the burn at a precise timestamp
-- The app uses `setAdminKey` so only the user's key can delete the schedule (on quiz success)
-- If the app is closed, the phone is off, or the internet is down — **the burn still executes on time**
+### What We Proved
 
----
-
-## 🏆 7-Day Streak Reward
-
-Answer correctly 7 days in a row? Earn a **+0.5ℏ bonus reward** and a golden trophy celebration. The protocol rewards consistent discipline.
-
----
-
-## 🛠 Tech Stack
-
-| Layer | Technology |
+| Claim | Proof |
 |---|---|
-| **Frontend** | React + Vite + Tailwind CSS v4 + Framer Motion |
-| **Blockchain** | Hedera Hashgraph — `@hashgraph/sdk` |
-| **Scheduling** | Hedera Native Scheduled Transactions (`ScheduleCreateTransaction`) |
-| **Database** | Supabase (streak persistence) |
-| **News API** | CryptoCompare News API (live quiz generation) |
-| **Deployment** | Vercel |
+| A burn can be scheduled to auto-execute on Hedera | `ScheduleCreateTransaction` with `setWaitForExpiry(true)` confirmed live on testnet |
+| The burn fires even when the app is offline | Hedera Consensus Service executed schedule `0.0.8000084` in our test — no app involvement |
+| The user can cancel the burn with a correct answer | `ScheduleDeleteTransaction` with admin key confirmed working |
+| Financial stats persist across sessions | `localStorage` + Supabase streak tracking — verified live |
+| The protocol is zero-backend | No server, no cron job, no off-chain executor anywhere in the stack |
+
+### Demo Flow
+
+```
+[Splash] → Initialize Protocol
+     ↓
+[Dashboard] → Set alarm time (07:00) + stake amount (2.5ℏ)
+     ↓
+[Arm] → ScheduleCreateTransaction created on Hedera testnet
+        (burn executes at 07:15 if not cancelled)
+     ↓
+[Ringing] → Alarm fires, synthesized audio alert
+     ↓
+[Quiz] → Live crypto news question — 15-minute grace window
+     ↓
+   ✅ Correct → ScheduleDeleteTransaction → Funds safe, streak +1
+   ❌ Wrong / No Answer → Hedera auto-executes burn at 07:15
+```
+
+### Testnet Verification
+
+Every alarm creates a verifiable on-chain record:
+```
+https://hashscan.io/testnet/schedule/<scheduleId>
+```
+
+---
+
+## 📄 PRD — Product Requirements Document
+
+### Problem Statement
+
+Behavioral accountability apps fail because they have no real consequences. Badge systems and streaks are psychologically weak. WakeFi introduces **credible commitment** — a concept from behavioral economics — to morning routines.
+
+### Target Users
+
+| Persona | Use Case |
+|---|---|
+| **Crypto-native productivity seekers** | Want skin-in-the-game discipline tools |
+| **Builders and founders** | Early wake-ups to compete globally |
+| **Web3 students** | Use financial pressure to study consistently |
+
+### User Stories
+
+- **As a user**, I want to stake HBAR as a commitment to wake up, so that I have a real financial incentive (not just a badge).
+- **As a user**, I want the burn to happen automatically even if I turn off my phone, so I can't cheat by closing the app.
+- **As a user**, I want to answer a real crypto news quiz to prove I'm awake and mentally engaged — not just dimly pressing snooze.
+- **As a user**, I want to see my full P&L (earned, rescued, burned) so I can track my performance over time.
+- **As a user**, I want a streak system that rewards 7 consecutive days of success with a bonus.
+- **As a user**, I want to see my balance and stake live on the dashboard — no fake numbers.
+
+### Feature Requirements
+
+| Priority | Feature | Status |
+|---|---|---|
+| P0 | Stake HBAR and arm alarm | ✅ Done |
+| P0 | Auto-burn via Hedera scheduled tx | ✅ Done |
+| P0 | Quiz-to-disarm with live crypto news | ✅ Done |
+| P0 | P&L summary on result | ✅ Done |
+| P1 | 7-day streak reward (+0.5ℏ bonus) | ✅ Done |
+| P1 | Real wallet balance from Hedera mirror node | ✅ Done |
+| P1 | HashScan schedule deep link | ✅ Done |
+| P1 | Alarm sound (Web Audio API) | ✅ Done |
+| P2 | Multi-alarm support | 🔜 v2 |
+| P2 | Social streak leaderboard | 🔜 v2 |
+| P2 | HashPack wallet connect | 🔜 v2 |
+
+### Success Metrics
+
+- Schedule creation success rate ≥ 99%
+- Quiz answer accuracy (user flows completing) ≥ 70%
+- Zero server-side failures (no server exists)
+
+---
+
+## 🔧 TRD — Technical Requirements Document
+
+### Architecture Overview
+
+```
+┌────────────────────────────────────────────────────┐
+│                   Frontend (React)                 │
+│  Dashboard → Arm → Ringing → Quiz → Result         │
+└─────────────────────┬──────────────────────────────┘
+                      │
+         ┌────────────┴───────────────┐
+         │                           │
+  @hashgraph/sdk              Supabase (REST)
+  Hedera Testnet              Streak tracking
+         │
+  ┌──────┴──────────────────────┐
+  │   ScheduleCreateTransaction │  ← armAlarm()
+  │   setWaitForExpiry(true)    │
+  │   setAdminKey(userKey)      │
+  │   executionTime = T + 15min │
+  └─────────────┬───────────────┘
+                │
+         ┌──────┴───────┐
+    Quiz Passed?   Quiz Failed / No Answer
+         │                   │
+  ScheduleDelete      Hedera Consensus
+  (admin key)         auto-executes burn
+  → Funds safe        at executionTime
+```
+
+### Core Protocol: `hederaService.js`
+
+#### `armAlarm(amount, alarmTimeStr, alarmId)`
+
+```js
+const scheduleTx = await new ScheduleCreateTransaction()
+  .setScheduledTransaction(transferTx)       // HBAR → burn address
+  .setScheduleMemo(`WakeFi alarm:${alarmId}`)
+  .setAdminKey(privateKey)                   // for deletion on success
+  .setExpirationTime(Timestamp.fromDate(burnTime)) // alarmTime + 15 min
+  .setWaitForExpiry(true)                    // ← auto-executes at expiry
+  .freezeWith(client)
+  .sign(privateKey);
+```
+
+#### `disarmAlarm(scheduleIdString)`
+
+```js
+const deleteTx = await new ScheduleDeleteTransaction()
+  .setScheduleId(ScheduleId.fromString(scheduleId))
+  .freezeWith(client)
+  .sign(privateKey);  // admin key required
+```
+
+### Execution Timeline
+
+| Time | Event |
+|---|---|
+| `T` | User arms alarm, Hedera schedule created |
+| `T + 0` | `ScheduleCreateTransaction` confirmed on ledger |
+| `T_alarm` | App transitions to RingingScreen, alarm sound plays |
+| `T_alarm + 0–15min` | Quiz window — user has full 15 minutes |
+| `T_alarm + 15min` | **Hedera auto-executes burn** if schedule not deleted |
+| `T_alarm + 15min` | OR: `ScheduleDeleteTransaction` fired on quiz success |
+
+### Key Technical Constraints
+
+| Constraint | Handling |
+|---|---|
+| ECDSA key required for Hedera testnet | `PrivateKey.fromStringECDSA()` |
+| Tailwind v4 cannot `@apply` component classes | Inlined all `.glass` properties into `.premium-card` |
+| Large bundle size (`@hashgraph/sdk` is ~3MB) | Acceptable for hackathon; v2 will use dynamic import |
+| VITE env vars must be prefixed `VITE_` | All env vars correctly prefixed |
+
+### Tech Stack
+
+| Layer | Technology | Version |
+|---|---|---|
+| Frontend Framework | React | 18 |
+| Build Tool | Vite | 7 |
+| Styling | Tailwind CSS | v4 |
+| Animations | Framer Motion | 11 |
+| Blockchain SDK | `@hashgraph/sdk` | 2.80 |
+| Streak DB | Supabase (PostgreSQL) | v2 |
+| News API | CryptoCompare News API | v2 |
+| Deployment | Vercel | — |
+
+### Environment Variables
+
+```env
+VITE_HEDERA_ACCOUNT_ID=0.0.XXXXXX
+VITE_HEDERA_PRIVATE_KEY=your_ecdsa_private_key_hex
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### Security Notes
+
+- Private key is ECDSA hex, stored in `.env` (gitignored)
+- Supabase anon key is read-only for streak table
+- No user funds are ever custodied by the app — all on Hedera ledger
+- `setAdminKey` ensures only the same key that armed can disarm
 
 ---
 
 ## 🎯 Bounty Targets
 
 ### 🥇 Hedera — Best Use of Hedera Native Features
-WakeFi uses **Hedera Scheduled Transactions** (`ScheduleCreateTransaction` + `setWaitForExpiry`) as a trustless, serverless enforcement layer — no smart contracts required. The burn executes on-chain at a precise timestamp regardless of app state.
+First-ever use of `ScheduleCreateTransaction` + `setWaitForExpiry(true)` as a **trustless enforcement layer** — no smart contracts, no backend. The Hedera ledger itself is the accountability engine.
 
 ### 🥈 Hedera — Best DeFi Application
-First-ever **Proof-of-Discipline** staking protocol. Users lock HBAR with a time-bound release condition. Real financial accountability, enforced by consensus.
+**Proof-of-Discipline** staking protocol. Users lock HBAR with a time-bound, knowledge-gated release condition. First DeFi primitive for behavioral productivity.
 
-### 🥉 Most Innovative Use of AI
-The quiz is powered by live crypto news (CryptoCompare API) with questions generated dynamically per session — preventing memorization and ensuring real engagement every morning.
-
----
-
-## 📁 Project Structure
-
-```
-/
-├── heth.jsx                  # Main app entry — screen router, state
-├── src/
-│   ├── hederaService.js      # armAlarm() + disarmAlarm() — all on-chain logic
-│   ├── supabaseClient.js     # Streak tracking (getStreak, increment, reset)
-│   └── components/
-│       ├── Dashboard.jsx     # Main UI — stake, alarm time, burn time, P&L
-│       ├── RingingScreen.jsx # Alarm state — Web Audio API beeps
-│       ├── QuizModal.jsx     # Live news quiz — 15min grace period
-│       ├── BurnScreen.jsx    # Liquidation screen — P&L breakdown
-│       ├── WelcomeScreen.jsx # Login with Hedera Account ID
-│       ├── AppShell.jsx      # Navigation shell
-│       ├── WalletScreen.jsx  # On-chain balance + transaction history
-│       └── ProfileScreen.jsx # Streak history + rewards
-└── public/
-    └── alarm.png             # Alarm clock icon
-```
+### 🥉 Most Innovative Use of AI / External APIs
+Live crypto quiz generated from **CryptoCompare News API** — different article every morning, source-matching question, prevents cheating by memorization.
 
 ---
 
 ## 🚀 Local Development
 
 ```bash
-# Clone
 git clone https://github.com/nihaparkashuni-del/FWakefi.git
 cd FWakefi
-
-# Install
 npm install
-
-# Configure (create .env)
-VITE_HEDERA_ACCOUNT_ID=0.0.XXXXXX
-VITE_HEDERA_PRIVATE_KEY=your_ecdsa_private_key_hex
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your_anon_key
-
-# Run
+# Create .env with keys above
 npm run dev
 ```
-
----
-
-## 🔗 On-Chain Verification
-
-Every alarm creates a real Hedera Scheduled Transaction visible on HashScan:
-
-```
-https://hashscan.io/testnet/schedule/<scheduleId>
-```
-
-The schedule shows:
-- The burn transfer (user → burn address)
-- The exact execution timestamp (alarmTime + 15 min)
-- Status: **ACTIVE** → **EXECUTED** (burned) or **DELETED** (rescued)
 
 ---
 
