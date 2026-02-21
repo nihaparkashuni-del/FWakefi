@@ -1,0 +1,159 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #7F84F6;
+  --color-accent-deep: #1326FD;
+  --color-success: #10B981;
+  --color-danger: #F43F5E;
+  --color-dark: #191C1F;
+  --color-dark-alt: #161618;
+
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer base {
+  body {
+    @apply bg-dark text-white font-sans antialiased selection:bg-accent/30;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/[0.02] backdrop-blur-2xl border border-white/[0.04];
+  }
+
+  .nav-blur {
+    @apply backdrop-blur-3xl bg-dark/70;
+  }
+
+  .premium-card {
+    @apply glass rounded-[14px] p-6 transition-all duration-400;
+  }
+
+  .premium-card:hover {
+    @apply -translate-y-1 bg-white/[0.04] border-white/10 shadow-[0_20px_40px_rgba(0, 0, 0, 0.3)];
+  }
+
+  .grad-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-white to-white/40;
+  }
+}
+
+/* ── Custom Animations ────────────────────────────────────────────────────── */
+
+@keyframes morph-reveal {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    border-radius: 50%;
+  }
+
+  40% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(25);
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes content-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(10px);
+    filter: blur(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px) rotate(-1deg);
+  }
+
+  75% {
+    transform: translateX(5px) rotate(1deg);
+  }
+}
+
+.animate-morph {
+  animation: morph-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-content {
+  animation: content-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+/* ── Typography Refinement ────────────────────────────────────────────── */
+h1,
+h2,
+h3 {
+  @apply tracking-tighter;
+}
+
+.font-black {
+  font-weight: 900;
+}
+
+/* ── Custom Utilities ─────────────────────────────────────────────────── */
+.line-clamp-7 {
+  display: -webkit-box;
+  -webkit-line-clamp: 7;
+  line-clamp: 7;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ── Scrollbar Styling ────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(127, 132, 246, 0.2);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 132, 246, 0.4);
+}

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wakefi — Web Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: '#191C1F',
+                        'dark-alt': '#161618',
+                        accent: '#7F84F6',
+                        'accent-deep': '#1326FD',
+                        muted: '#8C9093',
+                        success: '#10B981',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    borderRadius: {
+                        'premium': '14px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes morph-reveal {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+                border-radius: 50%;
+                width: 200px;
+                height: 200px;
+            }
+
+            40% {
+                transform: scale(1.2);
+                opacity: 0.9;
+            }
+
+            100% {
+                transform: scale(20);
+                opacity: 0;
+                visibility: hidden;
+            }
+        }
+
+        @keyframes content-in {
+            from {
+                opacity: 0;
+                transform: scale(0.98) translateY(10px);
+                filter: blur(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+                filter: blur(0);
+            }
+        }
+
+        .animate-content {
+            animation: content-in 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        #splash-circle {
+            transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .morphed {
+            animation: morph-reveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .nav-blur {
+            backdrop-filter: blur(24px);
+            background: rgba(25, 28, 31, 0.7);
+        }
+
+        .stagger-1 {
+            animation-delay: 0.1s;
+        }
+
+        .stagger-2 {
+            animation-delay: 0.2s;
+        }
+
+        .stagger-3 {
+            animation-delay: 0.3s;
+        }
+
+        .hover-card {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .hover-card:hover {
+            transform: translateY(-4px);
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(127, 132, 246, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2D3135;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-dark text-white font-sans antialiased overflow-hidden selection:bg-accent/30">
+
+    <!-- ── Splash Screen ─────────────────────────────────────────── -->
+    <div id="splash" class="fixed inset-0 z-[100] bg-dark flex items-center justify-center cursor-pointer">
+        <div id="splash-circle"
+            class="w-[300px] h-[300px] rounded-full bg-accent/5 flex items-center justify-center relative group">
+            <div class="absolute inset-0 bg-accent/10 rounded-full blur-[80px] animate-pulse"></div>
+            <div class="relative z-10 flex flex-col items-center">
+                <img src="assets/alarm.png" alt="Wakefi" class="w-48 h-48 object-contain">
+                <div class="mt-8 overflow-hidden">
+                    <p class="text-[10px] font-black tracking-[0.5em] uppercase text-accent animate-pulse">Initialize
+                        Protocol</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Dashboard Shell ──────────────────────────────────────── -->
+    <div id="dashboard" class="h-screen flex flex-col opacity-0 invisible overflow-hidden">
+
+        <!-- Header -->
+        <header class="h-20 flex items-center justify-between px-8 nav-blur border-b border-white/5 relative z-20">
+            <div class="flex items-center gap-10">
+                <div class="flex items-center gap-2 group cursor-pointer">
+                    <div
+                        class="w-8 h-8 bg-accent rounded-lg flex items-center justify-center shadow-lg shadow-accent/20">
+                        <i data-lucide="zap" class="w-5 h-5 text-dark fill-dark"></i>
+                    </div>
+                    <span class="text-xl font-bold tracking-tighter">Wakefi</span>
+                </div>
+
+                <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-muted">
+                    <a href="#" class="text-white">Dashboard</a>
+                    <a href="#" class="hover:text-white transition-colors">Staking</a>
+                    <a href="#" class="hover:text-white transition-colors">History</a>
+                    <a href="#" class="hover:text-white transition-colors">Governance</a>
+                </nav>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div
+                    class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold">
+                    <div class="w-1.5 h-1.5 rounded-full bg-success animate-pulse"></div>
+                    <span class="text-slate-400">Hedera Mainnet</span>
+                </div>
+                <button
+                    class="bg-accent text-dark px-5 py-2 rounded-full text-sm font-black hover:bg-accent-deep hover:text-white transition-all shadow-xl shadow-accent/10">
+                    Connect Wallet
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-8 relative">
+            <div class="max-w-6xl mx-auto space-y-8 animate-content">
+
+                <!-- Welcome Banner -->
+                <div class="space-y-2 pt-4">
+                    <h1 class="text-4xl font-black tracking-tighter">Welcome back, <span
+                            class="text-accent italic">Discipline.</span></h1>
+                    <p class="text-muted font-medium">Your current staking cycle is active. Next verification in 4h 12m.
+                    </p>
+                </div>
+
+                <!-- Stats Overview -->
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="glass p-6 rounded-premium space-y-1 hover-card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-muted">Total Staked</p>
+                        <p class="text-3xl font-black">12,450 <span class="text-accent">ℏ</span></p>
+                        <div class="flex items-center gap-1 text-[10px] text-success font-bold pt-1">
+                            <i data-lucide="trending-up" class="w-3 h-3"></i> +12% vs last month
+                        </div>
+                    </div>
+                    <div class="glass p-6 rounded-premium space-y-1 hover-card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-muted">Current Streak</p>
+                        <p class="text-3xl font-black">14 <span class="text-orange-500 italic">Days</span></p>
+                        <p class="text-[10px] text-slate-500 font-bold pt-1">Rescued 3.4kℏ total</p>
+                    </div>
+                    <div class="glass p-6 rounded-premium space-y-1 hover-card">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-muted">Reputation Score</p>
+                        <p class="text-3xl font-black">985 <span class="text-purple-400">XP</span></p>
+                        <p class="text-[10px] text-slate-500 font-bold pt-1">Top 5% of early risers</p>
+                    </div>
+                    <div class="glass p-6 rounded-premium space-y-1 hover-card border-accent/20">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-accent">Active Protocol</p>
+                        <p class="text-3xl font-black">07:00 <span class="text-lg">AM</span></p>
+                        <p class="text-[10px] text-accent/60 font-black uppercase tracking-widest pt-1">Guardian Armed
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Feature Grid: Staking Panel & Activity -->
+                <div class="grid lg:grid-cols-3 gap-6">
+
+                    <!-- Staking Panel -->
+                    <div class="lg:col-span-2 glass rounded-premium overflow-hidden flex flex-col">
+                        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                            <h3 class="font-bold flex items-center gap-2">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-accent"></i>
+                                Staking Protocol
+                            </h3>
+                            <button
+                                class="text-[10px] font-black uppercase tracking-widest text-muted hover:text-white transition-colors">Edit
+                                Schedule</button>
+                        </div>
+                        <div class="p-8 space-y-8 flex-1">
+                            <div class="space-y-4">
+                                <div class="flex justify-between items-end">
+                                    <label class="text-[10px] font-black uppercase tracking-widest text-muted">Amount to
+                                        Risk</label>
+                                    <span class="text-sm font-bold">Balance: 4,120ℏ</span>
+                                </div>
+                                <div class="relative group">
+                                    <input type="text" value="500.00"
+                                        class="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-4xl font-black tracking-tighter outline-none focus:border-accent/40 transition-all">
+                                    <div
+                                        class="absolute right-6 top-1/2 -translate-y-1/2 text-2xl font-bold text-accent">
+                                        ℏ</div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div
+                                    class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1 cursor-pointer hover:bg-white/10 transition-all">
+                                    <p class="text-[10px] font-black uppercase text-muted">Difficulty Level</p>
+                                    <p class="font-bold text-orange-400 italic">Advanced Quiz</p>
+                                </div>
+                                <div
+                                    class="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1 cursor-pointer hover:bg-white/10 transition-all">
+                                    <p class="text-[10px] font-black uppercase text-muted">Recovery Period</p>
+                                    <p class="font-bold text-white">Instant Unlock</p>
+                                </div>
+                            </div>
+
+                            <button
+                                class="w-full py-5 bg-accent text-dark rounded-full text-lg font-black hover:bg-accent-deep hover:text-white transition-all shadow-2xl shadow-accent/20">
+                                Arm Guardian
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Recent Activity -->
+                    <div class="glass rounded-premium flex flex-col">
+                        <div class="p-6 border-b border-white/5">
+                            <h3 class="font-bold flex items-center gap-2">
+                                <i data-lucide="history" class="w-4 h-4 text-accent"></i>
+                                Protocol History
+                            </h3>
+                        </div>
+                        <div class="p-6 space-y-6">
+                            <div class="flex items-center gap-4 group cursor-pointer">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success group-hover:scale-110 transition-transform">
+                                    <i data-lucide="check" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold">Successfully Rescued</p>
+                                    <p class="text-[10px] text-muted">Today, 07:04 AM</p>
+                                </div>
+                                <p class="text-sm font-black">+250ℏ</p>
+                            </div>
+                            <div class="flex items-center gap-4 group cursor-pointer">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-success/10 border border-success/20 flex items-center justify-center text-success group-hover:scale-110 transition-transform">
+                                    <i data-lucide="check" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold">Successfully Rescued</p>
+                                    <p class="text-[10px] text-muted">Yesterday, 07:01 AM</p>
+                                </div>
+                                <p class="text-sm font-black">+250ℏ</p>
+                            </div>
+                            <div class="flex items-center gap-4 group cursor-pointer opacity-50">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 grayscale transition-all">
+                                    <i data-lucide="flame" class="w-5 h-5"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm font-bold">Liquidation Event</p>
+                                    <p class="text-[10px] text-muted">3 days ago, 07:15 AM</p>
+                                </div>
+                                <p class="text-sm font-black text-rose-500">-500ℏ</p>
+                            </div>
+                        </div>
+                        <div class="p-6 mt-auto">
+                            <div class="glass p-4 rounded-xl border-dashed border-white/10 text-center">
+                                <p class="text-[10px] font-black uppercase tracking-widest text-slate-500">Node Status
+                                </p>
+                                <p class="text-[10px] font-bold text-accent mt-1">v4.2.0-Discipline-Alpha</p>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer Stats Branding -->
+                <div
+                    class="flex items-center justify-between py-8 border-t border-white/5 opacity-40 grayscale group hover:grayscale-0 hover:opacity-100 transition-all">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield" class="w-4 h-4"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest">Audited by Hedera Security</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-black uppercase tracking-widest italic">Built for the early
+                            risers. Built for the elite.</span>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Background Orbs -->
+    <div class="fixed top-1/4 -right-20 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px] pointer-events-none">
+    </div>
+    <div
+        class="fixed -bottom-20 -left-20 w-[400px] h-[400px] bg-accent-deep/5 rounded-full blur-[100px] pointer-events-none">
+    </div>
+
+    <script>
+        // Init Lucide
+        lucide.createIcons();
+
+        const splash = document.getElementById('splash');
+        const splashCircle = document.getElementById('splash-circle');
+        const dashboard = document.getElementById('dashboard');
+
+        splash.addEventListener('click', () => {
+            // Trigger morph
+            splashCircle.classList.add('morphed');
+
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    // Reveal dashboard
+                    dashboard.classList.remove('invisible');
+                    dashboard.classList.remove('opacity-0');
+                    dashboard.classList.add('opacity-100');
+                    dashboard.classList.add('animate-content');
+                }, 800);
+            }, 500);
+        });
+
+        // Interactive effect: Update cursor glow or similar if needed
+    </script>
+</body>
+
+</html>
